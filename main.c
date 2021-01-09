@@ -526,8 +526,4 @@ commandFunc();
     return 0;
 }
 
-// TODO
-//  built in funcs, realisation is done need implementation, implementation done
-//  signal
-//  redirect dup2 probably done
-//  make usage of exit
+
