@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <fcntl.h>
+//debug
 
 char *remove_spaces(char* s) {  // function removes spaces in string:  example: a mds dsf -> amdsdsf
     int i,k =0;
