@@ -4,12 +4,10 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <signal.h>
 #include <fcntl.h>
-#include <readline/readline.h>
 
-char *remove_spaces(char* s) {
+char *remove_spaces(char* s) {  // function removes spaces in string:  example: a mds dsf -> amdsdsf
     int i,k =0;
     if (s[0] == ' '){
         while (s[k]==' ') k++;
@@ -20,34 +18,29 @@ char *remove_spaces(char* s) {
     {
         s[i]=s[i+k];
         if ((s[i]==' '&& s[i-1]!=' ') || (s[i] == '|')) continue;
-        if(s[i]==' '|| s[i]=='\t'/*||(s[i]=='|' && s[i+1]==' ')*/)
+        if(s[i]==' '|| s[i]=='\t')
         {
             k++;
             i--;
         }
     }
-  /*  for (int j = 0; j < strlen(s); ++j) {
-        if (s[j]=='|') s[j]=' ';
-
-    }*/
     if (s[strlen(s)-1]==' ')
         s[strlen(s)-1]='\0';
-
     return s;
 
 
-} // сначала убирваем пробелы строчка слиплась
+}  // removing spaces
 
-char * makeSpaces(char*str) {
+char * makeSpaces(char*str) { // function makes spaces before and after '|' symbol, to split your string in future. example: ls|wc|wc -> ls | wc | wc
     int bufSize = 2048;
     char *s = malloc(bufSize * sizeof(char));
-    strcpy(s, str);
+    strcpy(s, str); // copying string
     char swap;
     char symb;
     char buf;
     int k;
     for (int i = 0; i < strlen(s); i++) {
-        if ((s[i] == '|' && s[i - 1] != ' ') || (s[i] == '|' && s[i + 1] != ' ')) {
+        if ((s[i] == '|' && s[i - 1] != ' ') || (s[i] == '|' && s[i + 1] != ' ')) {   // making spaces before/after |, saving symbols, moving them forward
             k = i + 1;
             symb = s[k];
             buf = s[k + 1];
@@ -75,21 +68,20 @@ char * makeSpaces(char*str) {
         }
     }
     return s;
-} // теперь разлепляем  |
+}  // adding spaces after/ before |
 
-char * makeSpacesR(char*str){
+char * makeSpacesR(char*str){ // making spaces if redirection symbol is met. Example: ls>a.txt -> ls > a.txt
         int bufSize = 2048;
-        char* s = malloc(bufSize*sizeof (char ));
+        char* s = malloc(bufSize*sizeof (char )); // func structure is similar to makeSpaces func, can be merged :)
         strcpy(s,str);
         char swap;
         char symb;
         char buf;
-        char space;
         int k;
-        for (int i = 0; i < strlen(s); i++) {
+        for (int i = 0; i < strlen(s); i++) { // making spaces before/after redirection symbols
             if ( (s[i] == '<' && s[i-1]!= ' ' ) ||(s[i] == '<' && s[i+1]!=' ') || ((s[i] == '>' && s[i-1]!= ' ' && s[i-1]!='>' ) ||(s[i] == '>' && s[i+1]!=' ' && s[i+1]!='>')) ||((s[i] == '>' && s[i+1] == '>'&& s[i-1]!= ' ' ) ||(s[i] == '>' && s[i+1] == '>' && s[i+2]!=' ')) || ((s[i] == '2' && s[i+1] == '>'&& s[i-1]!= ' ' ) ||(s[i] == '2' && s[i+1] == '>' && s[i+2]!=' '))){
                 k=i+1;
-                symb=s[k];
+                symb=s[k]; // saving current symb
                 buf =s[k+1];
                 s[k] =' ';
                 s[k+1] = ' ';
@@ -108,7 +100,7 @@ char * makeSpacesR(char*str){
             }
         }
 
-        for (int i = 0; i <strlen(s) ; i++) {
+        for (int i = 0; i <strlen(s) ; i++) {   // conditions for all redirections : 2>, >>, <,>
             if (s[i] == '2' && s[i-1]!= ' ' || (s[i] == '>' && s[i-1]!= ' ' && s[i-1]!='>')){
                 s[i+2] = s[i];
                 s[i] = ' ';
@@ -146,26 +138,27 @@ char * makeSpacesR(char*str){
         return s;
 
 
-} // вроде работает, команды арги и перенаправления отделены
+}  // adding spaces after/before redirections
 
-int Arrlen(char **Arr){ // функция вычисляет длину массива строк
+int Arrlen(char **Arr){ // return length of the string array;
     int k=0;
     while (Arr[k]!=NULL){
         k++;
     }
     return k;
-}
+}// return length of the string array;
 
 
-int Arrlens(char ***Arr){ // функция вычисляет длину массива строк
+int Arrlens(char ***Arr){ // similar to Arrlen but now array of arrays of string
     int k=0;
     while (Arr[k]!=NULL){
         k++;
     }
     return k;
-}
+} // similar to Arrlen but now array of arrays of string
+
 #define addSize 2048
-char *readLines(void){ // число команд и размеры буффера заранее неизвестны, будем читать строку и реаллоком по необходимости расширять
+char *readLines(void){ // don't know input string len, so using malloc; function is used for reading input string
     int bufferSize = addSize;
     char *buffer = (char *)malloc(bufferSize*sizeof(char ));
     int symbol=0;
@@ -177,14 +170,14 @@ char *readLines(void){ // число команд и размеры буффер
     }
     while (1){
 
-        symbol = fgetc(stdin); // если eof или конец строки записываем признак конца строки, сохраняем буффер
+        symbol = fgetc(stdin); // if EOF or '\0' -> saving buffer
         if (symbol== EOF || symbol == '\n' ){
             buffer[pos] = '\0';
             return buffer;
-        } else buffer[pos] = symbol; // иначе продолжаем писать посимвольно в буффер - строку
+        } else buffer[pos] = symbol; // or continue writing to buffer
         pos++;
 
-        if (pos >= bufferSize){    // если забили буффер - реалокнуть
+        if (pos >= bufferSize){    // if buffer if full -> realloc
             bufferSize += addSize;
             buffer=realloc(buffer,bufferSize);
             if (!buffer){
@@ -195,9 +188,10 @@ char *readLines(void){ // число команд и размеры буффер
 
     }
 
-}
+} //function is used for reading input string
+
 #define parseConst 128
-char **lineParsing(char *string){
+char **lineParsing(char *string){ // function is used for string parcing e.g : ls | wc -> (ls,|,wc), making array of strings
     int realCoef = parseConst;
     char **parsedArr = malloc(realCoef*sizeof (char *));
     int position=0;
@@ -216,19 +210,17 @@ char **lineParsing(char *string){
             parsedArr=realloc(
                     parsedArr,realCoef*sizeof (char *));
             if (!parsedArr){
-                fprintf(stderr,"realloc parce err");
+                fprintf(stderr,"realloc parcing err");
                 exit(EXIT_FAILURE);
             }
         }
         token=strtok(NULL," ");
     }
-    parsedArr[position] = NULL;
-    parsedArr[position+1] = NULL;
-
-
-
+   // parsedArr[position] = NULL; // closing with NULL is necessary for exec func;
+    //parsedArr[position+1] = NULL;
     return parsedArr;
-} // parsing strings
+} // parsing strings -> array of strings
+
 char ***arrSplit(char ** inputArr){
     int reallocConst = parseConst;
     char ** bufArr = malloc(sizeof (char *) * reallocConst);
@@ -238,30 +230,18 @@ char ***arrSplit(char ** inputArr){
     }
     int k =0;
     int l = 0;
-    int flag = 0;
     for (int i = 0; i < Arrlen(inputArr); i++) {
         if (inputArr[i][0]!='|' ){
-
             bufArr[l] = inputArr[i];
             l++;
         }
         else{
-            flag=1;
-          /*  for (int j = 0; j < Arrlen(bufArr); j++) {
-                printf("buffar %s\n",bufArr[j]);
-            }*/
+
             for (int j = 0; j < Arrlen(bufArr); j++) {
                 splited[k][j] = bufArr[j];
             }
-            splited[k][Arrlen(bufArr)]= NULL;
-
-           for (int j = 0; j <= Arrlen(splited[k]) ; j++) {
-                printf("for k :%d splited %s \n",k,splited[k][j]);
-            }
-           bufArr = (bufArr+Arrlen(bufArr));
-            //for (int j = 0; j < Arrlen(bufArr); j++)
-               // bufArr[j][0] = '\0';
-
+            splited[k][Arrlen(bufArr)]= NULL; //  closing with NULL for exec
+            bufArr = (bufArr+Arrlen(bufArr));
             k++;
             l = 0;
 
@@ -271,28 +251,19 @@ char ***arrSplit(char ** inputArr){
     for (int j = 0; j < Arrlen(bufArr); j++) {
         splited[k][j] = bufArr[j];
     }
-    splited[k][Arrlen(bufArr)]= NULL;
+    splited[k][Arrlen(bufArr)]= NULL;//  closing with NULL for exec
 
-//    for (int j = 0; j <= Arrlen(splited[k]) ; j++) {
-  //      printf("k is: %d splited %s \n",k,splited[k][j]);
-        /*if (splited[k][j]==NULL){
-            printf("yap");
-        }*/
-   // }
     splited[k+1] = NULL;
     return splited;
-} // making 3 dim char arr
+} // making array of arrays of strings
 
-int* redir(char **args){ // to understand which descriptors to open for currecnt part of conv
-    int *required[2]={0};// есл нет редиректа, то оставляем конвейер как есть; первое откуда читать второе на запись
+int* redir(char **args){ // if we have redirection, have to prepare descriptors
     int readd=0; // <
     int writee=0; // > >>
     int writes =0;
     int *retArr=malloc(sizeof(int ) * 3);
     int switcher=0;
     char *fileName=malloc(100* sizeof(char ));
-    int flag = 0;
-
     char *redirectors[4];
     redirectors[0] = "<";
     redirectors[1] = ">";
@@ -311,7 +282,7 @@ int* redir(char **args){ // to understand which descriptors to open for currecnt
             switcher = -2;
 
         if (switcher==-2){
-            kill(getppid(),SIGUSR1);
+            kill(getppid(),SIGUSR1);  // sending signal to parent, invalid redirection args
         }
         switch (switcher) {
             case 1: readd = open(fileName,O_RDONLY);break;
@@ -319,7 +290,7 @@ int* redir(char **args){ // to understand which descriptors to open for currecnt
             writee = open(fileName,O_WRONLY); break;
             case 3:writee = open(fileName,O_WRONLY|O_APPEND) ;if(writee == -1) writee = creat(fileName,0666);break;
             case 4: writes = open(fileName,O_WRONLY);break;
-            case -1: printf("check aars"); break;
+            case -1: printf("check args"); break;
             default:continue;
         }
 
@@ -359,27 +330,24 @@ char **clearRed(char **arr){ // clear arg arr from redirectors
     }
     return retArr;
 
-}  // cleaning redirect from cur command list
+}  // cleaning redirect from cur command list e.g. (ls,>,a.txt) -> (ls,a.txt);
 
 void ign(pid_t s){
-    pid_t Father;
     signal(SIGINT,SIG_IGN);
-  // signal(SIGTSTP,SIG_IGN);
-}
+} // ignoring CTRL+C in shell process, can be checked with top command, top will be stopped shell process continue
 void arg(int s){
     signal(SIGUSR1,arg);
     printf("arg!!!\n");
-
 }
-
 void stop(int s){
     pid_t pid;
     pid=getpid();
     printf("stopped pid = %d", pid );
     signal(SIGINT,SIG_DFL);
     signal(SIGTSTP,SIG_DFL);
-}
-int shell(char ***argsArr){
+} // used to igone CTRL+Z, working on it
+
+int shell(char ***argsArr){ // shell func
 pid_t pid,ppid;
 int status;
 int fd[2];
@@ -387,25 +355,22 @@ int i =0;
 int *redirr=malloc(3* sizeof(int));
 
     while (argsArr[i] != NULL){
-
-
-        if (pipe(fd)<0){perror("pipe err");return 1;}
-        int oldfd0;
+        if (pipe(fd)<0){perror("pipe err");return 1;} // making pipe
+        int oldfd0; // saving descriptor from previous command, so each time new pipe is made, can't read from previous without saving
         switch ((pid = fork())) {
             case -1: return 1;
             case 0:
-                printf("%d",pid);
-                signal(SIGINT,stop);
-                signal(SIGTSTP,stop);
-                redirr = redir(argsArr[i]);
-                argsArr[i]=clearRed(argsArr[i]);
-                if (i+1!=Arrlens(argsArr) )// пока не последняя команда перенаправляем вывод
-                    dup2(fd[1],1);
+                signal(SIGINT,stop); // redirecting signal CTRL+C, works
+                signal(SIGTSTP,stop); // redirecting signal CTRL+Z, doesn't work
+                redirr = redir(argsArr[i]); // getting redirection if required
+                argsArr[i]=clearRed(argsArr[i]); // cleaning from redirections
+                if (i+1!=Arrlens(argsArr) )// while not last command
+                    dup2(fd[1],1);// output to pipe
                 if (i!=0){
-                    dup2(oldfd0,0);   // ошибка тут, почему дескриптор мешает вводу строк в дальнейшем
+                    dup2(oldfd0,0);   // if not first read from pipe
                 }
                 if (redirr[2]!=0){
-                    dup2(redirr[2],2);
+                    dup2(redirr[2],2); // redir from stderr to file
                     close(redirr[2]);
                 }
 
@@ -414,13 +379,13 @@ int *redirr=malloc(3* sizeof(int));
                     close(redirr[1]);
                 }
                 if (redirr[0]!=0){
-                    dup2(redirr[0],0); // close?
+                    dup2(redirr[0],0);
                     close(redirr[0]);
                 }
-                close(fd[1]);
+                close(fd[1]); // closing descriptors
                 close(fd[0]);
 
-                execvp(argsArr[i][0],argsArr[i]);
+                execvp(argsArr[i][0],argsArr[i]); // executing commands
                 if (execvp(argsArr[i][0],argsArr[i])==-1)
                     printf("execvp err,check args");
                 exit(0);
@@ -432,11 +397,11 @@ int *redirr=malloc(3* sizeof(int));
 
         i++;
     }
-    while (wait(NULL)!=-1);
+    while (wait(NULL)!=-1); // waiting sons
     return 1;
 
 
-}
+} // shell function
 
 
 // builtin funcs:
@@ -464,7 +429,7 @@ int mypwd(char **args){
 }
 
 
-void builtInCheck(char **args) {   // работа со встренными функциями
+void builtInCheck(char **args) {   // working with built in shell funcs
 
     if (strcmp(args[0], "cd") == 0) {
         cd(args);
@@ -480,19 +445,15 @@ void commandFunc(void ){
     int status;
     int myComs =0;
     char *inputLine;
-    char cwd[1024];
     char ** argumentArr;
     char ***executerArr;
     char *ListOfBuiltInFuncs[myComs];
     ListOfBuiltInFuncs[0] = "exit";
     ListOfBuiltInFuncs[1] = "cd";
     ListOfBuiltInFuncs[2] = "pwd";
-
-
     do {
         printf(">");
         inputLine=readLines();
-
         inputLine = remove_spaces(inputLine);
         inputLine=makeSpaces(inputLine);
         inputLine = makeSpacesR(inputLine);
@@ -500,9 +461,7 @@ void commandFunc(void ){
 
     argumentArr = lineParsing(inputLine);
     builtInCheck(argumentArr);
-    /*for (int i = 0; i < Arrlen(argumentArr); i++) {
-        printf("%s\n",argumentArr[i]);
-    }*/
+
 
     printf("\n");
     executerArr = arrSplit(argumentArr);
